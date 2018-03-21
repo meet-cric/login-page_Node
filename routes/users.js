@@ -36,7 +36,9 @@ router.post('/register', function(req, res){
   var errors = req.validationErrors();
 
   if(errors){
-    console.log("yes");
+		res.render('register',{
+			errors:errors
+		});
     }
   else{
     //signup data passed to database with hash password
@@ -48,6 +50,7 @@ router.post('/register', function(req, res){
                  .then((item) => {
                    req.flash('success_msg', 'You are registered and can now login');
                    res.render("./login");
+                   req.flash('success_msg', 'You are registered and can now login');
               })
                .catch((err) => {
                  console.log(err.message);
