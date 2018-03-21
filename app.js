@@ -8,6 +8,7 @@ var session = require('express-session');
 var flash=require('flash');
 var passport=require('passport');
 var exphbs  = require('express-handlebars');
+var expressValidator = require('express-validator');
 
 
 var indexRouter = require('./routes/index');
@@ -44,6 +45,24 @@ app.use(session({
 
 //connect flash
 app.use(flash());
+
+// Express Validator
+app.use(expressValidator({
+  errorFormatter: function(param, msg, value) {
+      var namespace = param.split('.')
+      , root    = namespace.shift()
+      , formParam = root;
+
+    while(namespace.length) {
+      formParam += '[' + namespace.shift() + ']';
+    }
+    return {
+      param : formParam,
+      msg   : msg,
+      value : value
+    };
+  }
+}));
 
  // Global Vars
  app.use(function (req, res, next) {
