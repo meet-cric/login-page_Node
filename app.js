@@ -9,7 +9,8 @@ var flash=require('flash');
 var passport=require('passport');
 var exphbs  = require('express-handlebars');
 var expressValidator = require('express-validator');
-
+var mongoose=require('mongoose');
+var bcrypt = require('bcrypt');
 
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
@@ -35,6 +36,15 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
 
+//setting up database
+mongoose.connect('mongodb://localhost:27017/login');
+var db = mongoose.connection;
+db.once('open', function () {
+  console.log("Connection to MongoDB succesful...");
+}).on('error', function (error) {
+  console.log("MongoDB connection error: ", error);
+});
+
 //session middleware
 app.use(session({
   secret: 'keyboard cat',
@@ -42,7 +52,6 @@ app.use(session({
   saveUninitialized: true,
   cookie: { secure: true }
 }));
-
 //connect flash
 app.use(flash());
 
