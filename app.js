@@ -5,8 +5,9 @@ var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 var bodyParser = require('body-parser');
 var session = require('express-session');
-var flash=require('flash');
+var flash=require('connect-flash');
 var passport=require('passport');
+var LocalStrategy = require('passport-local').Strategy;
 var exphbs  = require('express-handlebars');
 var expressValidator = require('express-validator');
 var mongoose=require('mongoose');
@@ -17,43 +18,30 @@ var usersRouter = require('./routes/users');
 
 var app = express();
 
-// view engine setup
+
+// View Engine
 app.set('views', path.join(__dirname, 'views'));
-var hbs = exphbs.create({ /* config */ });
-app.engine('handlebars', hbs.engine);
 app.engine('handlebars', exphbs({defaultLayout:'layout'}));
 app.set('view engine', 'handlebars');
 
-
-
-app.use(logger('dev'));
-app.use(express.json());
+// BodyParser Middleware
 app.use(bodyParser.json());
-app.use(express.urlencoded({ extended: false }));
+app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
+
+// Set Static Folder
 app.use(express.static(path.join(__dirname, 'public')));
 
-app.use('/', indexRouter);
-app.use('/users', usersRouter);
-
-//setting up database
-mongoose.connect('mongodb://localhost:27017/login');
-var db = mongoose.connection;
-db.once('open', function () {
-  console.log("Connection to MongoDB succesful...");
-}).on('error', function (error) {
-  console.log("MongoDB connection error: ", error);
-});
-
-//session middleware
+// Express Session
 app.use(session({
-  secret: 'keyboard cat',
-  resave: false,
-  saveUninitialized: true,
-  cookie: { secure: true }
+    secret: 'secret',
+    saveUninitialized: true,
+    resave: true
 }));
-//connect flash
-app.use(flash());
+
+// Passport init
+app.use(passport.initialize());
+app.use(passport.session());
 
 // Express Validator
 app.use(expressValidator({
@@ -73,17 +61,31 @@ app.use(expressValidator({
   }
 }));
 
- // Global Vars
- app.use(function (req, res, next) {
-   res.locals.success_msg = req.flash('success_msg');
-   res.locals.error_msg = req.flash('error_msg');
-   res.locals.error = req.flash('error');
-   res.locals.user = req.user || null;
-   next();
- });
- //passport init
-app.use(passport.initialize());
-app.use(passport.session());
+// Connect Flash
+app.use(flash());
+
+// Global Vars
+app.use(function (req, res, next) {
+  res.locals.success_msg = req.flash('success_msg');
+  res.locals.error_msg = req.flash('error_msg');
+  res.locals.error = req.flash('error');
+  res.locals.user = req.user || null;
+  next();
+});
+
+app.use('/', indexRouter);
+app.use('/users', usersRouter);
+
+//setting up database
+mongoose.connect('mongodb://localhost:27017/login');
+var db = mongoose.connection;
+db.once('open', function () {
+  console.log("Connection to MongoDB succesful...");
+}).on('error', function (error) {
+  console.log("MongoDB connection error: ", error);
+});
+
+
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
