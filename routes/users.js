@@ -1,12 +1,14 @@
 var express = require('express');
 var router = express.Router();
+var mongo = require('mongodb').MongoClient;
 var passport = require('passport');
 var LocalStrategy = require('passport-local').Strategy;
 var bcrypt = require('bcrypt');
 
-
+var url = 'mongodb://localhost:27017/login';
 
 const User  =require('../models/user');
+
 
 /* GET users listing. */
 router.get('/register', function(req, res, next) {
@@ -14,6 +16,9 @@ router.get('/register', function(req, res, next) {
 });
 router.get('/login', function(req, res, next) {
   res.render('./login');
+});
+router.get('/admin',function(req,res,next){
+  res.render('./admin');
 });
 
 // Register User
@@ -98,11 +103,38 @@ router.post('/login',
   function(req, res) {
     res.redirect('/');
   });
+  //logout menu
   router.get('/logout',function(req,res){
     req.logout();
     req.flash('success_msg',"you are succesfully logged out");
     res.redirect('/users/login');
   })
+  //admin post
 
+
+router.post('/admin',function(req,res){
+  var email=req.body.email;
+  var password=req.body.password;
+// console.log(email);
+
+  req.checkBody('email', 'Email is required').notEmpty();
+  req.checkBody('password', 'Password is required').notEmpty();
+
+  var errors = req.validationErrors();
+
+  if(errors){
+    res.render('admin',{
+      errors:errors
+    })
+  }else if((email=="mp32445@gmail.com")&&(password=="meet1234")){
+    res.render('./admin1');
+  }else{
+    req.flash('error_msg',"Enter Valid Emailid And Password");
+    res.redirect('/users/admin');
+  }
+
+
+
+});
 
 module.exports = router;
