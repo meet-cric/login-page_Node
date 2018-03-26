@@ -1,11 +1,12 @@
 var express = require('express');
 var router = express.Router();
-var mongo = require('mongodb').MongoClient;
+var MongoClient = require('mongodb').MongoClient;
 var passport = require('passport');
 var LocalStrategy = require('passport-local').Strategy;
 var bcrypt = require('bcrypt');
 
 var url = 'mongodb://localhost:27017/login';
+
 
 const User  =require('../models/user');
 
@@ -132,9 +133,20 @@ router.post('/admin',function(req,res){
     req.flash('error_msg',"Enter Valid Emailid And Password");
     res.redirect('/users/admin');
   }
-
-
-
+});
+//retrive data in admin page
+router.get('/get-data', function(req, res, next) {
+  var resultArray = [];
+  MongoClient.connect(url, function(err, db) {
+     var dbo = db.db("login");
+    var cursor = dbo.collection('logins').find();
+    cursor.forEach(function(doc, err) {
+      resultArray.push(doc);
+    }, function() {
+      db.close();
+      res.render('admin1', {items: resultArray});
+    });
+  });
 });
 
 module.exports = router;
